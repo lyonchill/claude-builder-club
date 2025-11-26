@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Price to Hours Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="popup.css" />
+    <style>
+      html,
+      body {
+        background: transparent !important;
+        background-color: transparent !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="popup-container">
+      <!-- Header with Toggle -->
+      <header class="popup-header">
+        <div class="header-content">
+          <h1>Convert Price to Hours</h1>
+          <label class="header-toggle-label">
+            <input type="checkbox" id="toggle-hours" class="toggle-input" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </header>
+
+      <!-- Main Card -->
+      <main class="popup-content">
+        <!-- Hourly Wage Section -->
+        <section class="wage-section">
+          <div class="section-label">
+            <div class="icon-circle icon-circle-green">
+              <img src="icons/dollar-icon.svg" alt="" class="icon" />
+            </div>
+            <span class="label-text">Your Hourly Wage</span>
+          </div>
+
+          <div class="input-container">
+            <div class="input-field">
+              <span class="currency-symbol">$</span>
+              <input
+                type="number"
+                id="wage-input"
+                class="wage-input"
+                placeholder="0.00"
+                min="0.01"
+                step="0.01"
+                inputmode="decimal"
+              />
+            </div>
+          </div>
+
+          <div
+            id="current-wage-display"
+            class="current-wage"
+            style="display: none"
+          >
+            <span class="current-label">Current:</span>
+            <span id="current-wage-value" class="current-value"></span>
+          </div>
+
+          <div
+            id="error-message"
+            class="error-message"
+            style="display: none"
+          ></div>
+          <div
+            id="success-message"
+            class="success-message"
+            style="display: none"
+          >
+            ✓ Wage saved successfully!
+          </div>
+        </section>
+
+        <!-- Display Mode Section -->
+        <section class="display-mode-section">
+          <div class="section-label">
+            <div class="icon-circle icon-circle-light">
+              <img src="icons/clock-icon.svg" alt="" class="icon" />
+            </div>
+            <span class="label-text">Display Mode</span>
+          </div>
+
+          <div class="display-mode-options">
+            <label class="radio-option" id="option-side-by-side">
+              <input
+                type="radio"
+                name="display-mode"
+                value="side-by-side"
+                id="mode-side-by-side"
+              />
+              <div class="radio-content">
+                <div class="radio-left">
+                  <span class="radio-circle"></span>
+                  <span class="radio-label">Side by Side</span>
+                </div>
+                <span class="radio-description">Show price + time</span>
+              </div>
+            </label>
+
+            <label class="radio-option" id="option-replace">
+              <input
+                type="radio"
+                name="display-mode"
+                value="replace"
+                id="mode-replace"
+              />
+              <div class="radio-content">
+                <div class="radio-left">
+                  <span class="radio-circle"></span>
+                  <span class="radio-label">Replace</span>
+                </div>
+                <span class="radio-description">Replace price with time</span>
+              </div>
+            </label>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,423 @@
+---
+alwaysApply: true
+---
+
+# UI Design Document - Price to Hours Converter Extension
+
+## Overview
+
+This document describes the user interface design for the Price to Hours Converter Chrome extension. The UI consists of two main components:
+
+1. **Extension Popup** - For managing hourly wage settings
+2. **In-Page UI** - For displaying hour conversions alongside prices on shopping sites
+
+## Design Principles
+
+- **Minimal and Clean**: Simple, uncluttered interface that doesn't distract from shopping
+- **Non-Intrusive**: In-page UI blends naturally with existing page content
+- **Clear Information Hierarchy**: Important information (hours) is visible but doesn't overwhelm
+- **Accessible**: Good contrast, readable fonts, keyboard navigation support
+- **Responsive**: Works across different screen sizes and shopping site layouts
+
+---
+
+## 1. Extension Popup UI
+
+### Purpose
+
+Allow users to view and set their hourly wage, which is used for all price-to-hours conversions.
+
+### Layout Structure
+
+```
+┌─────────────────────────────────┐
+│  Price to Hours Converter       │  ← Header (Extension name)
+├─────────────────────────────────┤
+│                                 │
+│  💰 Your Hourly Wage            │  ← Section title
+│                                 │
+│  ┌───────────────────────────┐ │
+│  │ $ [25.00]                 │ │  ← Input field (number, 2 decimals)
+│  └───────────────────────────┘ │
+│                                 │
+│  Current: $25.00/hour           │  ← Current wage display (if set)
+│                                 │
+│  ┌───────────────────────────┐ │
+│  │    Save Wage              │ │  ← Primary button
+│  └───────────────────────────┘ │
+│                                 │
+│  ─────────────────────────────  │  ← Divider
+│                                 │
+│  📊 Quick Examples              │  ← Examples section
+│                                 │
+│  $50 item = 2h 0m               │  ← Example conversions
+│  $100 item = 4h 0m              │
+│  $15 item = 36m                 │
+│                                 │
+│  ─────────────────────────────  │
+│                                 │
+│  ℹ️  Conversions appear         │  ← Info text
+│     automatically on shopping    │
+│     sites                       │
+│                                 │
+└─────────────────────────────────┘
+```
+
+### Components
+
+#### Header
+
+- **Text**: "Price to Hours Converter"
+- **Style**: Bold, 18px, dark color (#1a1a1a)
+- **Padding**: 16px top, 12px bottom
+
+#### Hourly Wage Input Section
+
+- **Label**: "💰 Your Hourly Wage" (with emoji icon)
+- **Input Field**:
+  - Type: number
+  - Placeholder: "0.00"
+  - Min: 0.01
+  - Step: 0.01
+  - Format: Currency prefix ($) shown, but input accepts numbers
+  - Validation: Must be > 0
+- **Current Wage Display**:
+  - Shows "Current: $X.XX/hour" when wage is set
+  - Hidden when wage is 0 or not set
+  - Style: Muted gray text, smaller font
+
+#### Save Button
+
+- **Text**: "Save Wage"
+- **Style**: Primary button (blue background, white text)
+- **States**:
+  - Default: Blue (#4285f4)
+  - Hover: Darker blue (#3367d6)
+  - Active: Pressed state
+  - Disabled: Gray when wage is invalid
+
+#### Quick Examples Section
+
+- **Title**: "📊 Quick Examples"
+- **Content**: Shows 3 example conversions based on current wage
+- **Format**: "$X item = Yh Zm"
+- **Updates**: Dynamically when wage changes
+- **Hidden**: When wage is not set
+
+#### Info Section
+
+- **Text**: "ℹ️ Conversions appear automatically on shopping sites"
+- **Style**: Small, muted text, centered
+
+### Styling Details
+
+- **Width**: 320px (standard Chrome popup width)
+- **Max Height**: 500px (with scroll if needed)
+- **Background**: White (#ffffff)
+- **Font**: System font stack (San Francisco on Mac, Segoe UI on Windows)
+- **Border Radius**: 8px for popup container
+- **Spacing**: 16px padding, 12px between sections
+- **Colors**:
+  - Primary: #4285f4 (Google Blue)
+  - Text: #1a1a1a
+  - Muted: #5f6368
+  - Border: #dadce0
+  - Background: #f8f9fa (for sections)
+
+### Interactions
+
+1. **Wage Input**:
+
+   - User types hourly wage
+   - Real-time validation (must be > 0)
+   - Format as currency on blur
+   - Show error message if invalid
+
+2. **Save Button**:
+
+   - Saves wage to chrome.storage.local
+   - Shows success message briefly
+   - Updates examples section
+   - Triggers reprocessing on all open shopping tabs
+
+3. **Examples Update**:
+   - Automatically recalculates when wage changes
+   - Shows "Set wage to see examples" when wage is 0
+
+---
+
+## 2. In-Page UI (Shopping Sites)
+
+### Purpose
+
+Display hour conversions directly next to or below detected prices on shopping websites.
+
+### Design Approach
+
+The in-page UI should:
+
+- **Not disrupt** the existing page layout
+- **Blend naturally** with the site's design
+- **Be clearly visible** but not obtrusive
+- **Work across** different shopping site layouts
+
+### Display Methods
+
+#### Method 1: Inline Badge (Preferred)
+
+Display hours as a small badge next to the price:
+
+```
+Original: $49.99
+Display:  $49.99  [2h 0m]
+```
+
+- **Position**: Immediately after the price element
+- **Style**: Small badge/pill shape
+- **Colors**: Subtle background, readable text
+- **Size**: Compact, doesn't take much space
+
+#### Method 2: Tooltip/Overlay
+
+Show hours on hover:
+
+```
+$49.99 (hover → shows "2h 0m")
+```
+
+- **Trigger**: Hover over price
+- **Position**: Tooltip above or below price
+- **Style**: Clean tooltip with arrow
+
+#### Method 3: Below Price
+
+Display hours below the price (for vertical layouts):
+
+```
+$49.99
+2h 0m
+```
+
+- **Position**: Directly below price element
+- **Style**: Smaller, muted text
+- **Spacing**: 4px gap
+
+### Visual Design
+
+#### Badge Style (Primary Method)
+
+```
+┌─────────┐
+│ 2h 0m   │  ← Badge
+└─────────┘
+```
+
+- **Background**: Light blue (#e8f0fe) or light gray (#f1f3f4)
+- **Text Color**: Dark blue (#1a73e8) or dark gray (#5f6368)
+- **Border**: 1px solid, matching text color (optional)
+- **Border Radius**: 12px (pill shape)
+- **Padding**: 4px 8px
+- **Font Size**: 11px or 12px
+- **Font Weight**: 500 (medium)
+- **Margin**: 4px left margin from price
+
+#### Tooltip Style (Secondary Method)
+
+```
+      ┌─────────┐
+      │ 2h 0m   │  ← Tooltip
+      └─────────┘
+        ▲
+    $49.99
+```
+
+- **Background**: Dark (#202124) or white with shadow
+- **Text Color**: White (if dark bg) or dark (if light bg)
+- **Border Radius**: 4px
+- **Padding**: 6px 10px
+- **Font Size**: 12px
+- **Shadow**: Subtle drop shadow for depth
+- **Arrow**: Small triangle pointing to price
+
+### Implementation Strategy
+
+1. **Detection**: Content script detects prices and marks them with data attributes
+2. **Injection**: Create overlay elements next to/below price elements
+3. **Positioning**: Use absolute or relative positioning to place hours display
+4. **Styling**: Inject CSS that:
+   - Doesn't conflict with site styles
+   - Uses high specificity to override if needed
+   - Includes !important for critical styles
+5. **Updates**: Re-inject when:
+   - New prices are detected (dynamic content)
+   - Wage changes
+   - Page layout changes
+
+### CSS Injection
+
+```css
+.price-hours-badge {
+  display: inline-block;
+  background-color: #e8f0fe;
+  color: #1a73e8;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 6px;
+  vertical-align: middle;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.price-hours-tooltip {
+  position: absolute;
+  background-color: #202124;
+  color: #ffffff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 10000;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+```
+
+### Responsive Considerations
+
+- **Mobile**: Smaller badges, adjust spacing
+- **Tablet**: Standard size
+- **Desktop**: Standard size
+- **High DPI**: Ensure text remains readable
+
+### Accessibility
+
+- **ARIA Labels**: Add aria-label to badges: "Requires X hours of work"
+- **Keyboard Navigation**: Ensure badges don't interfere with tab order
+- **Screen Readers**: Hours information should be readable by screen readers
+- **Color Contrast**: Meet WCAG AA standards (4.5:1 for text)
+
+---
+
+## 3. State Management
+
+### Popup States
+
+1. **Initial Load**:
+
+   - Fetch current wage from storage
+   - Display in input field
+   - Show examples if wage > 0
+
+2. **Wage Not Set**:
+
+   - Input field empty or 0
+   - Examples section hidden or shows placeholder
+   - Info message about setting wage
+
+3. **Wage Set**:
+
+   - Input shows current wage
+   - Examples show conversions
+   - Save button enabled
+
+4. **Saving**:
+
+   - Button shows "Saving..." or spinner
+   - Disable input during save
+   - Show success message after save
+
+5. **Error State**:
+   - Show error message below input
+   - Highlight input in red
+   - Disable save button
+
+### In-Page States
+
+1. **No Wage Set**:
+
+   - Don't display any hours badges
+   - Optionally show message in console
+
+2. **Prices Detected**:
+
+   - Inject badges for all detected prices
+   - Update as new prices appear
+
+3. **Wage Changed**:
+
+   - Recalculate all conversions
+   - Update all badges with new hours
+
+4. **Page Navigation**:
+   - Clear old badges
+   - Detect new prices on new page
+
+---
+
+## 4. User Flow
+
+### First-Time User
+
+1. User installs extension
+2. Clicks extension icon → popup opens
+3. Sees empty wage input
+4. Enters hourly wage (e.g., $25)
+5. Clicks "Save Wage"
+6. Sees success message
+7. Navigates to shopping site
+8. Sees hours displayed next to prices automatically
+
+### Returning User
+
+1. Clicks extension icon
+2. Sees current wage already set
+3. Can update wage if needed
+4. Shopping sites automatically show conversions
+
+### Wage Update Flow
+
+1. User changes wage in popup
+2. Clicks "Save Wage"
+3. All open shopping tabs automatically update
+4. New hours values appear next to prices
+
+---
+
+## 5. Technical Implementation Notes
+
+### Popup Files
+
+- `popup.html` - Structure
+- `popup.css` - Styling
+- `popup.js` - Logic and storage interaction
+
+### Content Script UI
+
+- Inject badges via `content-script.js`
+- Use MutationObserver to handle dynamic content
+- Store badge elements for easy updates/removal
+
+### Communication
+
+- Popup ↔ Background: chrome.runtime.sendMessage
+- Background ↔ Content: chrome.tabs.sendMessage
+- Storage: chrome.storage.local
+
+### Performance
+
+- Debounce price detection (500ms)
+- Batch DOM updates
+- Use requestAnimationFrame for smooth updates
+- Cache wage value to avoid repeated storage calls
+
+---
+
+## 6. Future Enhancements
+
+- Toggle to show/hide hours on pages
+- Different display styles (user preference)
+- Currency support for international sites
+- Dark mode support
+- Custom badge colors/themes
+- Statistics (total hours for cart, etc.)
