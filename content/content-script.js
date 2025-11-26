@@ -11,6 +11,7 @@ let replacedPrices = new Map() // Track replaced price elements (for replace mod
 let stylesInjected = false
 let displayMode = "side-by-side" // Default display mode
 let showHours = true // Default to showing hours
+let tierSettings = null // Tier settings for color coding
 
 /**
  * Inject CSS styles for price badges
@@ -75,10 +76,92 @@ async function getShowHours() {
 }
 
 /**
+ * Get tier settings from storage
+ */
+async function getTierSettings() {
+  try {
+    const result = await chrome.storage.local.get("tierSettings")
+    return (
+      result.tierSettings || {
+        type: "money",
+        green: 0,
+        yellow: 50,
+        red: 100,
+      }
+    )
+  } catch (error) {
+    console.error("Error getting tier settings:", error)
+    return {
+      type: "money",
+      green: 0,
+      yellow: 50,
+      red: 100,
+    }
+  }
+}
+
+/**
+ * Determine tier color based on value and tier settings
+ * @param {number} value - The value to check (price or hours)
+ * @param {Object} settings - Tier settings object
+ * @returns {string} Tier color: "green", "yellow", or "red"
+ */
+function getTierColor(value, settings) {
+  if (!settings || typeof value !== "number" || isNaN(value)) {
+    return "yellow" // Default to yellow if no settings
+  }
+
+  const { green, yellow, red } = settings
+
+  // Green: value is below green threshold (or 0 if green is 0)
+  if (green === 0 && value === 0) {
+    return "green"
+  }
+  if (value < green) {
+    return "green"
+  }
+
+  // Yellow: value is between green and yellow thresholds
+  if (value >= green && value <= yellow) {
+    return "yellow"
+  }
+
+  // Red: value is above yellow threshold
+  if (value > yellow) {
+    return "red"
+  }
+
+  // Default to yellow
+  return "yellow"
+}
+
+/**
+ * Get background color for a tier
+ * @param {string} tier - Tier color: "green", "yellow", or "red"
+ * @returns {string} Background color hex code
+ */
+function getTierBackgroundColor(tier) {
+  switch (tier) {
+    case "green":
+      return "#d4edda" // Light green
+    case "yellow":
+      return "#fef3c7" // Light yellow (existing color)
+    case "red":
+      return "#f8d7da" // Light red
+    default:
+      return "#fef3c7" // Default to yellow
+  }
+}
+
+/**
  * Create a badge element for displaying hours (side-by-side mode)
  * Copies font styles from the price element to match appearance
+ * @param {string} hoursFormatted - Formatted hours string
+ * @param {HTMLElement} priceElement - The price element
+ * @param {number} price - The original price
+ * @param {number} hours - The calculated hours
  */
-function createBadge(hoursFormatted, priceElement) {
+function createBadge(hoursFormatted, priceElement, price, hours) {
   const badge = document.createElement("span")
   badge.className = "price-hours-badge"
   badge.textContent = hoursFormatted
@@ -87,6 +170,15 @@ function createBadge(hoursFormatted, priceElement) {
     "title",
     `This item costs ${hoursFormatted} of work at your hourly wage`
   )
+
+  // Determine tier color based on tier settings
+  let tierColor = "yellow" // Default
+  if (tierSettings) {
+    const valueToCheck = tierSettings.type === "hours" ? hours : price
+    tierColor = getTierColor(valueToCheck, tierSettings)
+  }
+  const backgroundColor = getTierBackgroundColor(tierColor)
+  badge.style.backgroundColor = backgroundColor
 
   // Copy font styles from the price element to match appearance
   if (priceElement) {
@@ -126,9 +218,13 @@ function storeOriginalPrice(element) {
 
 /**
  * Replace price text with hours (replace mode)
- * Applies same styling as side-by-side mode: yellow background, matching font styles
+ * Applies same styling as side-by-side mode: tier-based background, matching font styles
+ * @param {HTMLElement} element - The price element to replace
+ * @param {string} hoursFormatted - Formatted hours string
+ * @param {number} price - The original price
+ * @param {number} hours - The calculated hours
  */
-function replacePriceWithHours(element, hoursFormatted) {
+function replacePriceWithHours(element, hoursFormatted, price, hours) {
   // Store original if not already stored
   storeOriginalPrice(element)
 
@@ -138,8 +234,16 @@ function replacePriceWithHours(element, hoursFormatted) {
   // Replace the text content
   element.textContent = hoursFormatted
 
-  // Apply same styling as side-by-side badge: yellow background, padding, border-radius
-  element.style.backgroundColor = "#fef3c7"
+  // Determine tier color based on tier settings
+  let tierColor = "yellow" // Default
+  if (tierSettings) {
+    const valueToCheck = tierSettings.type === "hours" ? hours : price
+    tierColor = getTierColor(valueToCheck, tierSettings)
+  }
+  const backgroundColor = getTierBackgroundColor(tierColor)
+
+  // Apply same styling as side-by-side badge: tier-based background, padding, border-radius
+  element.style.backgroundColor = backgroundColor
   element.style.padding = "2px 6px"
   element.style.borderRadius = "4px"
   element.style.display = "inline-block"
@@ -250,6 +354,18 @@ function injectBadgesSideBySide() {
       }
       // Hours changed, update the badge text and styles
       existingBadge.textContent = hoursFormatted
+
+      // Update tier color based on tier settings
+      const price = priceObj.price
+      const hours = conversions[index]?.hours
+      let tierColor = "yellow" // Default
+      if (tierSettings) {
+        const valueToCheck = tierSettings.type === "hours" ? hours : price
+        tierColor = getTierColor(valueToCheck, tierSettings)
+      }
+      const backgroundColor = getTierBackgroundColor(tierColor)
+      existingBadge.style.backgroundColor = backgroundColor
+
       // Update font styles to match price element
       const computedStyle = window.getComputedStyle(element)
       existingBadge.style.fontSize = computedStyle.fontSize
@@ -281,7 +397,9 @@ function injectBadgesSideBySide() {
       }
 
       // Create badge with font styles matching the price element
-      const badge = createBadge(hoursFormatted, element)
+      const price = priceObj.price
+      const hours = conversions[index]?.hours
+      const badge = createBadge(hoursFormatted, element, price, hours)
 
       const parent = element.parentNode
 
@@ -336,7 +454,9 @@ function injectBadgesReplace() {
     }
 
     try {
-      replacePriceWithHours(element, hoursFormatted)
+      const price = priceObj.price
+      const hours = conversions[index]?.hours
+      replacePriceWithHours(element, hoursFormatted, price, hours)
     } catch (error) {
       console.error("Error replacing price:", error)
     }
@@ -411,6 +531,9 @@ async function init() {
   displayMode = await getDisplayMode()
   showHours = await getShowHours()
 
+  // Load tier settings
+  tierSettings = await getTierSettings()
+
   // Check if this is a shopping site
   if (!isShoppingSite()) {
     return
@@ -438,6 +561,9 @@ async function processPage() {
 
   const wage = await getHourlyWage()
   if (wage <= 0) return
+
+  // Reload tier settings in case they changed
+  tierSettings = await getTierSettings()
 
   // Detect prices on the page
   detectedPrices = detectPrices()

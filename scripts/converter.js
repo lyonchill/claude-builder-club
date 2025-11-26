@@ -80,3 +80,56 @@ function convertPricesToHours(prices, hourlyWage, formatOptions = {}) {
     }
   })
 }
+
+/**
+ * Determine tier color based on value and tier settings
+ * @param {number} value - The value to check (price or hours)
+ * @param {Object} tierSettings - Tier settings object with type, green, yellow, red
+ * @returns {string} Tier color: "green", "yellow", or "red"
+ */
+function getTierColor(value, tierSettings) {
+  if (!tierSettings || typeof value !== "number" || isNaN(value)) {
+    return "yellow" // Default to yellow if no settings
+  }
+
+  const { green, yellow, red } = tierSettings
+
+  // Green: value is below green threshold (or 0 if green is 0)
+  if (green === 0 && value === 0) {
+    return "green"
+  }
+  if (value < green) {
+    return "green"
+  }
+
+  // Yellow: value is between green and yellow thresholds
+  if (value >= green && value <= yellow) {
+    return "yellow"
+  }
+
+  // Red: value is above yellow threshold
+  if (value > yellow) {
+    return "red"
+  }
+
+  // Default to yellow
+  return "yellow"
+}
+
+/**
+ * Get background color for a tier
+ * @param {string} tier - Tier color: "green", "yellow", or "red"
+ * @returns {string} Background color hex code
+ */
+function getTierBackgroundColor(tier) {
+  switch (tier) {
+    case "green":
+      return "#d4edda" // Light green
+    case "yellow":
+      return "#fef3c7" // Light yellow (existing color)
+    case "red":
+      return "#f8d7da" // Light red
+    default:
+      return "#fef3c7" // Default to yellow
+  }
+}

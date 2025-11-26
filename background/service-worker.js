@@ -123,6 +123,40 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true // Keep message channel open for async response
   }
 
+  if (request.action === "setTierSettings") {
+    const settings = request.settings
+
+    // Validate settings
+    if (
+      !settings ||
+      (settings.type !== "money" && settings.type !== "hours") ||
+      typeof settings.green !== "number" ||
+      typeof settings.yellow !== "number" ||
+      typeof settings.red !== "number"
+    ) {
+      sendResponse({ success: false, error: "Invalid tier settings" })
+      return
+    }
+
+    chrome.storage.local.set({ tierSettings: settings }, () => {
+      // Notify all tabs to reprocess with new tier settings
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+          setTimeout(() => {
+            chrome.tabs
+              .sendMessage(tab.id, { action: "reprocess" })
+              .catch(() => {
+                // Ignore errors for tabs that don't have content script
+              })
+          }, 50)
+        })
+      })
+
+      sendResponse({ success: true })
+    })
+    return true // Keep message channel open for async response
+  }
+
   if (request.action === "reprocessAll") {
     // Force reprocess all tabs immediately
     chrome.tabs.query({}, (tabs) => {
@@ -185,6 +219,21 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
           .catch(() => {
             // Ignore errors
           })
+      })
+    })
+  }
+
+  if (areaName === "local" && changes.tierSettings) {
+    console.log("Tier settings updated:", changes.tierSettings.newValue)
+
+    // Notify all tabs to reprocess with new tier settings
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        setTimeout(() => {
+          chrome.tabs.sendMessage(tab.id, { action: "reprocess" }).catch(() => {
+            // Ignore errors
+          })
+        }, 100)
       })
     })
   }

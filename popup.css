@@ -79,6 +79,7 @@ body {
   gap: var(--spacing-section-gap);
   padding: var(--spacing-container);
   background-color: transparent;
+  background: transparent;
 }
 
 /* Header Section */
@@ -90,6 +91,7 @@ body {
   align-items: center;
   padding: 0 var(--spacing-container);
   overflow: hidden;
+  margin: 0;
 }
 
 .header-content {
@@ -174,6 +176,12 @@ body {
   flex-direction: column;
   gap: var(--spacing-section-gap);
   min-height: 382px;
+  margin: 0;
+}
+
+/* Tier Card (separate modal for price tiers) */
+.popup-content-tier {
+  min-height: auto;
 }
 
 /* Section Label */
@@ -346,10 +354,6 @@ body {
   height: 0;
 }
 
-.radio-option input[type="radio"]:checked ~ .radio-content {
-  /* Selected state handled by parent border/background */
-}
-
 .radio-option.checked {
   background-color: rgba(172, 220, 118, 0.08);
   border-color: var(--color-light-green);
@@ -411,6 +415,119 @@ body {
   line-height: 20px;
   color: var(--color-text-secondary);
   letter-spacing: var(--letter-spacing-description);
+}
+
+/* Tier Settings Section */
+.tier-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-internal-gap);
+}
+
+.tier-type-selector {
+  display: flex;
+  gap: var(--spacing-internal-gap);
+}
+
+.tier-type-selector .radio-option {
+  flex: 1;
+}
+
+.tier-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-internal-gap);
+}
+
+.tier-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tier-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-label);
+  font-weight: 400;
+  color: var(--color-primary-dark);
+}
+
+.tier-color-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.tier-green-bg {
+  background-color: #34c759;
+}
+
+.tier-yellow-bg {
+  background-color: #fef3c7;
+}
+
+.tier-red-bg {
+  background-color: #ea4335;
+}
+
+.tier-label-text {
+  font-weight: 500;
+}
+
+.tier-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tier-currency {
+  position: absolute;
+  left: 12px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-input);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tier-input {
+  width: 100%;
+  height: var(--input-height);
+  padding: 0 12px 0 28px;
+  border: 1px solid var(--color-medium-green);
+  border-radius: var(--radius-input);
+  font-family: var(--font-family);
+  font-size: var(--font-size-input);
+  font-weight: 400;
+  color: var(--color-primary-dark);
+  background-color: var(--color-white);
+  transition: border-color 0.2s;
+}
+
+.tier-input:focus {
+  outline: none;
+  border-color: var(--color-light-green);
+}
+
+.tier-input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.tier-description {
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin-top: -4px;
+}
+
+.tier-icon {
+  font-size: 20px;
 }
 
 /* Scrollbar Styling */

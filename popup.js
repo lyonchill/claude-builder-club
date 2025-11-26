@@ -12,6 +12,14 @@ const modeSideBySide = document.getElementById("mode-side-by-side")
 const modeReplace = document.getElementById("mode-replace")
 const toggleHours = document.getElementById("toggle-hours")
 
+// Tier settings elements
+const tierTypeMoney = document.getElementById("tier-type-money")
+const tierTypeHours = document.getElementById("tier-type-hours")
+const tierGreenInput = document.getElementById("tier-green-input")
+const tierYellowInput = document.getElementById("tier-yellow-input")
+const tierRedInput = document.getElementById("tier-red-input")
+const tierSuccessMessage = document.getElementById("tier-success-message")
+
 /**
  * Initialize popup
  */
@@ -50,6 +58,9 @@ async function init() {
   // Load toggle state
   const showHours = await getShowHours()
   toggleHours.checked = showHours
+
+  // Load tier settings
+  await loadTierSettings()
 
   // Set up event listeners
   setupEventListeners()
@@ -356,6 +367,39 @@ function setupEventListeners() {
   // Initialize radio styles
   updateRadioStyles()
 
+  // Tier type radio buttons
+  tierTypeMoney.addEventListener("change", async () => {
+    if (tierTypeMoney.checked) {
+      updateTierCurrencySymbol("money")
+      updateTierTypeRadioStyles()
+      await saveTierSettings()
+    }
+  })
+
+  tierTypeHours.addEventListener("change", async () => {
+    if (tierTypeHours.checked) {
+      updateTierCurrencySymbol("hours")
+      updateTierTypeRadioStyles()
+      await saveTierSettings()
+    }
+  })
+
+  // Tier input fields - save on blur
+  tierGreenInput.addEventListener("blur", saveTierSettings)
+  tierYellowInput.addEventListener("blur", saveTierSettings)
+  tierRedInput.addEventListener("blur", saveTierSettings)
+
+  // Tier input fields - validate on input
+  tierGreenInput.addEventListener("input", () => {
+    tierGreenInput.style.borderColor = "#a7cab6"
+  })
+  tierYellowInput.addEventListener("input", () => {
+    tierYellowInput.style.borderColor = "#a7cab6"
+  })
+  tierRedInput.addEventListener("input", () => {
+    tierRedInput.style.borderColor = "#a7cab6"
+  })
+
   // Listen for storage changes (in case wage is updated elsewhere)
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === "local" && changes.hourlyWage) {
@@ -376,6 +420,21 @@ function setupEventListeners() {
     if (areaName === "local" && changes.showHours) {
       const newShow = changes.showHours.newValue !== false
       toggleHours.checked = newShow
+    }
+    if (areaName === "local" && changes.tierSettings) {
+      const newSettings = changes.tierSettings.newValue
+      if (newSettings) {
+        if (newSettings.type === "hours") {
+          tierTypeHours.checked = true
+        } else {
+          tierTypeMoney.checked = true
+        }
+        updateTierCurrencySymbol(newSettings.type)
+        tierGreenInput.value = newSettings.green || 0
+        tierYellowInput.value = newSettings.yellow || 50
+        tierRedInput.value = newSettings.red || 100
+        updateTierTypeRadioStyles()
+      }
     }
   })
 }
@@ -400,6 +459,177 @@ function notifyShowHoursChange(show) {
   } catch (error) {
     console.error("Error notifying background script:", error)
   }
+}
+
+/**
+ * Get tier settings from storage
+ */
+async function getTierSettings() {
+  try {
+    const result = await chrome.storage.local.get("tierSettings")
+    return (
+      result.tierSettings || {
+        type: "money",
+        green: 0,
+        yellow: 50,
+        red: 100,
+      }
+    )
+  } catch (error) {
+    console.error("Error getting tier settings:", error)
+    return {
+      type: "money",
+      green: 0,
+      yellow: 50,
+      red: 100,
+    }
+  }
+}
+
+/**
+ * Set tier settings in storage
+ */
+async function setTierSettings(settings) {
+  try {
+    await chrome.storage.local.set({ tierSettings: settings })
+    return true
+  } catch (error) {
+    console.error("Error setting tier settings:", error)
+    return false
+  }
+}
+
+/**
+ * Load tier settings into UI
+ */
+async function loadTierSettings() {
+  const settings = await getTierSettings()
+
+  // Set tier type
+  if (settings.type === "hours") {
+    tierTypeHours.checked = true
+  } else {
+    tierTypeMoney.checked = true
+  }
+
+  // Update currency symbol based on type
+  updateTierCurrencySymbol(settings.type)
+
+  // Set tier values
+  tierGreenInput.value = settings.green || 0
+  tierYellowInput.value = settings.yellow || 50
+  tierRedInput.value = settings.red || 100
+
+  // Update radio button styles
+  updateTierTypeRadioStyles()
+}
+
+/**
+ * Update currency symbol based on tier type
+ */
+function updateTierCurrencySymbol(type) {
+  const currencySymbols = document.querySelectorAll(".tier-currency")
+  const descriptions = document.querySelectorAll(".tier-description")
+
+  if (type === "hours") {
+    currencySymbols.forEach((el) => {
+      el.textContent = "h"
+    })
+    // Update descriptions for hours
+    if (descriptions.length >= 3) {
+      descriptions[0].textContent = "Below this amount"
+      descriptions[1].textContent = "Up to this amount"
+      descriptions[2].textContent = "Above this amount"
+    }
+  } else {
+    currencySymbols.forEach((el) => {
+      el.textContent = "$"
+    })
+    // Update descriptions for money
+    if (descriptions.length >= 3) {
+      descriptions[0].textContent = "Below this amount"
+      descriptions[1].textContent = "Up to this amount"
+      descriptions[2].textContent = "Above this amount"
+    }
+  }
+}
+
+/**
+ * Update tier type radio button styles
+ */
+function updateTierTypeRadioStyles() {
+  const moneyOption = document.getElementById("option-tier-money")
+  const hoursOption = document.getElementById("option-tier-hours")
+
+  if (tierTypeMoney.checked) {
+    moneyOption.classList.add("checked")
+    hoursOption.classList.remove("checked")
+  } else {
+    moneyOption.classList.remove("checked")
+    hoursOption.classList.add("checked")
+  }
+}
+
+/**
+ * Save tier settings
+ */
+async function saveTierSettings() {
+  const type = tierTypeMoney.checked ? "money" : "hours"
+  const green = parseFloat(tierGreenInput.value) || 0
+  const yellow = parseFloat(tierYellowInput.value) || 50
+  const red = parseFloat(tierRedInput.value) || 100
+
+  // Validate: yellow should be >= green, red should be >= yellow
+  if (yellow < green) {
+    tierYellowInput.style.borderColor = "#ea4335"
+    return
+  }
+  if (red < yellow) {
+    tierRedInput.style.borderColor = "#ea4335"
+    return
+  }
+
+  // Reset border colors
+  tierGreenInput.style.borderColor = "#a7cab6"
+  tierYellowInput.style.borderColor = "#a7cab6"
+  tierRedInput.style.borderColor = "#a7cab6"
+
+  const settings = {
+    type: type,
+    green: green,
+    yellow: yellow,
+    red: red,
+  }
+
+  const success = await setTierSettings(settings)
+
+  if (success) {
+    // Show success message
+    tierSuccessMessage.style.display = "block"
+    setTimeout(() => {
+      tierSuccessMessage.style.display = "none"
+    }, 2000)
+
+    // Notify background script
+    try {
+      chrome.runtime.sendMessage({
+        action: "setTierSettings",
+        settings: settings,
+      })
+    } catch (error) {
+      console.error("Error notifying background script:", error)
+    }
+  }
+}
+
+/**
+ * Show tier success message
+ */
+function showTierSuccess() {
+  tierSuccessMessage.style.display = "block"
+  setTimeout(() => {
+    tierSuccessMessage.style.display = "none"
+  }, 2000)
 }
 
 // Initialize when DOM is ready

@@ -38,7 +38,7 @@
         <section class="wage-section">
           <div class="section-label">
             <div class="icon-circle icon-circle-green">
-              <img src="icons/dollar-icon.svg" alt="" class="icon" />
+              <img src="icons/dollar-icon.png" alt="" class="icon" />
             </div>
             <span class="label-text">Your Hourly Wage</span>
           </div>
@@ -85,7 +85,7 @@
         <section class="display-mode-section">
           <div class="section-label">
             <div class="icon-circle icon-circle-light">
-              <img src="icons/clock-icon.svg" alt="" class="icon" />
+              <img src="icons/eye-icon.png" alt="" class="icon" />
             </div>
             <span class="label-text">Display Mode</span>
           </div>
@@ -125,6 +125,121 @@
           </div>
         </section>
       </main>
+
+      <!-- Price Tier Card -->
+      <section class="popup-content popup-content-tier">
+        <!-- Tier Settings Section -->
+        <section class="tier-settings-section">
+          <div class="section-label">
+            <div class="icon-circle icon-circle-light">
+              <img src="icons/tier-icon.png" alt="" class="icon" />
+            </div>
+            <span class="label-text">Price Tiers</span>
+          </div>
+
+          <div class="tier-type-selector">
+            <label class="radio-option" id="option-tier-money">
+              <input
+                type="radio"
+                name="tier-type"
+                value="money"
+                id="tier-type-money"
+              />
+              <div class="radio-content">
+                <div class="radio-left">
+                  <span class="radio-circle"></span>
+                  <span class="radio-label">By Money</span>
+                </div>
+              </div>
+            </label>
+
+            <label class="radio-option" id="option-tier-hours">
+              <input
+                type="radio"
+                name="tier-type"
+                value="hours"
+                id="tier-type-hours"
+              />
+              <div class="radio-content">
+                <div class="radio-left">
+                  <span class="radio-circle"></span>
+                  <span class="radio-label">By Hours</span>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="tier-inputs">
+            <div class="tier-input-group tier-green">
+              <label class="tier-label">
+                <span class="tier-color-indicator tier-green-bg"></span>
+                <span class="tier-label-text">OK (Green)</span>
+              </label>
+              <div class="tier-input-wrapper">
+                <span class="tier-currency">$</span>
+                <input
+                  type="number"
+                  id="tier-green-input"
+                  class="tier-input"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                />
+              </div>
+              <span class="tier-description">Below this amount</span>
+            </div>
+
+            <div class="tier-input-group tier-yellow">
+              <label class="tier-label">
+                <span class="tier-color-indicator tier-yellow-bg"></span>
+                <span class="tier-label-text">Medium (Yellow)</span>
+              </label>
+              <div class="tier-input-wrapper">
+                <span class="tier-currency">$</span>
+                <input
+                  type="number"
+                  id="tier-yellow-input"
+                  class="tier-input"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                />
+              </div>
+              <span class="tier-description">Up to this amount</span>
+            </div>
+
+            <div class="tier-input-group tier-red">
+              <label class="tier-label">
+                <span class="tier-color-indicator tier-red-bg"></span>
+                <span class="tier-label-text">Pricey (Red)</span>
+              </label>
+              <div class="tier-input-wrapper">
+                <span class="tier-currency">$</span>
+                <input
+                  type="number"
+                  id="tier-red-input"
+                  class="tier-input"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                />
+              </div>
+              <span class="tier-description">Above this amount</span>
+            </div>
+          </div>
+
+          <div
+            id="tier-success-message"
+            class="success-message"
+            style="display: none"
+          >
+            ✓ Tier settings saved!
+          </div>
+        </section>
+      </section>
     </div>
 
     <script src="popup.js"></script>
