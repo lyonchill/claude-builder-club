@@ -214,6 +214,8 @@ body {
   width: var(--icon-inner);
   height: var(--icon-inner);
   display: block;
+  object-fit: contain;
+  object-position: center;
 }
 
 .label-text {
