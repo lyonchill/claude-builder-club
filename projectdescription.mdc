@@ -1,0 +1,29 @@
+# Project Description
+
+## Overview
+
+This is a Google Chrome extension that helps users understand the real cost of items by converting prices into hours of work required.
+
+## Features
+
+### 1. Hourly Wage Storage
+
+- The extension stores the user's hourly wage locally
+- Wage data persists across browser sessions
+
+### 2. Hourly Wage Management
+
+- Users can view their current hourly wage
+- Users can update/change their hourly wage at any time
+
+### 3. Price-to-Hours Conversion
+
+- When the extension is activated on a website, it automatically:
+  - Detects if the current website is a shopping/e-commerce site
+  - Identifies item prices on the page
+  - Converts each item's price to the number of hours the user would need to work to afford it
+  - Displays the conversion alongside or near the original price
+
+## Use Case
+
+This extension helps users make more informed purchasing decisions by providing a tangible perspective on the cost of items in terms of their time and labor.
